@@ -1,0 +1,135 @@
+{{define "content"}}
+<div x-data="{ showNew: false }" class="space-y-6">
+
+  <section class="glass-panel flex flex-wrap items-center justify-between gap-4 px-5 py-4">
+    <div class="flex items-center gap-3">
+      <span class="relative flex h-10 w-10 items-center justify-center rounded-xl border border-fuchsia-400/30 bg-purple-500/10">
+        <span class="absolute inset-0 animate-pulse rounded-xl bg-fuchsia-500/10"></span>
+        <svg class="relative h-5 w-5 text-fuchsia-300" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 9h8M8 12h5m-5 3h3M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/>
+        </svg>
+      </span>
+      <div>
+        <p class="font-mono text-[10px] uppercase tracking-[0.24em] text-purple-300/60">Núcleo de operaciones</p>
+        <p class="mt-0.5 text-sm text-slate-300">Pipeline global de proyectos y clientes de la agencia.</p>
+      </div>
+    </div>
+    <span class="system-chip border-emerald-400/30 text-emerald-300">
+      <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
+      Circuito estable
+    </span>
+  </section>
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    {{template "metric-card" (dict "label" "Proyectos totales" "value" .TotalProjects "hint" "Registrados en el sistema" "dot" "bg-fuchsia-400 text-fuchsia-400")}}
+    {{template "metric-card" (dict "label" "Proyectos activos" "value" .ActiveProjects "hint" "Operando ahora" "dot" "bg-emerald-400 text-emerald-400")}}
+    {{template "metric-card" (dict "label" "Clientes" "value" .TotalClients "hint" "Cuentas conectadas" "dot" "bg-purple-400 text-purple-400")}}
+  </div>
+
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <p class="font-mono text-[10px] uppercase tracking-[0.24em] text-purple-300/60">Matriz de proyectos</p>
+      <h2 class="mt-0.5 text-lg font-semibold text-white">Proyectos</h2>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <a href="/admin/clients" class="ghost-button">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1m14-8a3 3 0 0 0 0-6m4 14v-1a4 4 0 0 0-3-3.87M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+        </svg>
+        Gestionar clientes
+      </a>
+      <button @click="showNew = !showNew" class="neon-button">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M12 5v14M5 12h14"/>
+        </svg>
+        Nuevo proyecto
+      </button>
+    </div>
+  </div>
+
+  <div x-show="showNew" x-cloak x-transition.opacity.duration.200ms class="glass-panel overflow-hidden p-6">
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <p class="font-mono text-[10px] uppercase tracking-[0.24em] text-fuchsia-300/70">Alta de nodo</p>
+        <h3 class="mt-0.5 text-base font-semibold text-white">Nuevo proyecto</h3>
+      </div>
+      <span class="system-chip">MXN · Base</span>
+    </div>
+    <form method="post" action="/admin/projects" class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+      <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+      <div>
+        <label class="field-label" for="project-name">Nombre</label>
+        <input id="project-name" name="name" required class="field-input" placeholder="Portal de Reservas">
+      </div>
+      <div>
+        <label class="field-label" for="project-client">Cliente</label>
+        <select id="project-client" name="client_id" required class="field-input">
+          <option value="">Selecciona un cliente</option>
+          {{range .Clients}}<option value="{{.ID}}">{{.Name}} · {{.Email}}</option>{{end}}
+        </select>
+      </div>
+      <div class="md:col-span-2">
+        <label class="field-label" for="project-description">Descripción</label>
+        <textarea id="project-description" name="description" rows="2" class="field-input" placeholder="Alcance breve del proyecto"></textarea>
+      </div>
+      <div>
+        <label class="field-label" for="project-cost">Costo base (MXN)</label>
+        <input id="project-cost" type="number" step="0.01" name="base_cost" value="0" class="field-input font-mono tabular-nums">
+      </div>
+      <div>
+        <label class="field-label" for="project-start">Fecha de inicio</label>
+        <input id="project-start" type="date" name="start_date" class="field-input">
+      </div>
+      <div class="flex justify-end gap-2 md:col-span-2">
+        <button type="button" @click="showNew=false" class="ghost-button">Cancelar</button>
+        <button class="neon-button">Crear proyecto</button>
+      </div>
+    </form>
+    {{if not .Clients}}<p class="mt-3 text-sm text-amber-300">Crea primero un cliente para poder asignar proyectos.</p>{{end}}
+  </div>
+
+  <div class="glass-panel overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-purple-500/10 text-sm">
+        <thead class="bg-purple-950/30 text-left font-mono text-[10px] uppercase tracking-[0.18em] text-purple-300/60">
+          <tr>
+            <th class="px-5 py-3 font-medium">Proyecto</th>
+            <th class="px-5 py-3 font-medium">Cliente</th>
+            <th class="px-5 py-3 font-medium">Estado</th>
+            <th class="px-5 py-3 font-medium">Inicio</th>
+            <th class="px-5 py-3 font-medium">Costo base</th>
+            <th class="px-5 py-3 font-medium"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-purple-500/10">
+          {{range .Projects}}
+          <tr class="group transition-colors duration-200 hover:bg-purple-500/5">
+            <td class="px-5 py-4">
+              <div class="flex items-start gap-3">
+                <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-purple-400/40 shadow-[0_0_8px_rgba(168,85,247,0.4)] transition-shadow group-hover:bg-fuchsia-400 group-hover:shadow-[0_0_10px_#e879f9]"></span>
+                <div>
+                  <div class="font-medium text-white">{{.Name}}</div>
+                  <div class="mt-0.5 text-xs text-slate-400">{{truncate .Description 80}}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-5 py-4 text-slate-300">{{.ClientName}}</td>
+            <td class="px-5 py-4"><span class="rounded-full border px-2.5 py-1 font-mono text-[10px] font-medium uppercase tracking-wide {{statusClass .Status}}">{{projectStatus .Status}}</span></td>
+            <td class="px-5 py-4 font-mono text-xs text-slate-400">{{if .StartDate.Valid}}{{date .StartDate.String}}{{else}}—{{end}}</td>
+            <td class="px-5 py-4 font-mono text-xs tabular-nums text-slate-300">{{money .BaseCost .Currency}}</td>
+            <td class="px-5 py-4 text-right">
+              <a href="/admin/projects/{{.ID}}/srs" class="neon-button whitespace-nowrap px-3 py-1.5 text-xs">Abrir workspace</a>
+            </td>
+          </tr>
+          {{else}}
+          <tr><td colspan="6" class="px-5 py-12 text-center">
+            <img src="/static/img/empty-projects.svg" alt="" class="mx-auto mb-3 h-28 w-auto opacity-70 drop-shadow-[0_0_24px_rgba(168,85,247,0.35)]">
+            <p class="text-sm text-slate-400">Aún no hay proyectos. Crea el primero.</p>
+          </td></tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{{end}}

@@ -1,0 +1,105 @@
+{{define "content"}}
+<div class="space-y-6">
+  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h2 class="text-lg font-semibold text-slate-900">Finanzas del proyecto</h2>
+    <p class="mt-1 text-sm text-slate-500">Información transparente: costo base, pagos autorizados y cargos extra. Puedes reportar un pago con su comprobante; el administrador debe autorizarlo para que se acredite.</p>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-xs text-slate-500">Costo base</p>
+      <p class="mt-1 text-xl font-bold text-slate-900">{{money .Project.BaseCost .Project.Currency}}</p>
+    </div>
+    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+      <p class="text-xs text-emerald-700">Pagado</p>
+      <p class="mt-1 text-xl font-bold text-emerald-700">{{money (index .Totals "paid") .Project.Currency}}</p>
+    </div>
+    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+      <p class="text-xs text-amber-700">Saldo del costo base</p>
+      <p class="mt-1 text-xl font-bold text-amber-700">{{money .Remaining .Project.Currency}}</p>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-xs text-slate-500">Cargos extra</p>
+      <p class="mt-1 text-xl font-bold text-slate-900">{{money (index .Totals "extras") .Project.Currency}}</p>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-primary-200 bg-primary-50 p-6 shadow-sm">
+    <h2 class="text-base font-semibold text-primary-900">Reportar un pago realizado</h2>
+    <p class="mt-1 text-xs text-primary-700">Adjunta el comprobante. El monto se descuenta del saldo del costo base solo cuando el administrador autoriza el pago.</p>
+    <form method="post" enctype="multipart/form-data" action="/client/projects/{{.Project.ID}}/payments" class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-4">
+      <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+      <div>
+        <label class="mb-1 block text-xs font-medium text-slate-600">Monto</label>
+        <input type="number" step="0.01" name="amount" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+      </div>
+      <div class="md:col-span-2">
+        <label class="mb-1 block text-xs font-medium text-slate-600">Nota / referencia</label>
+        <input name="note" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Transferencia, referencia, fecha...">
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-medium text-slate-600">Comprobante</label>
+        <input type="file" name="proof" required class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white">
+      </div>
+      <div class="md:col-span-4 flex justify-end">
+        <button class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700">Enviar pago para autorización</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="border-b border-slate-200 px-6 py-4">
+      <h3 class="text-base font-semibold text-slate-900">Pagos reportados</h3>
+      <p class="text-xs text-slate-500">Solo los pagos marcados como pagados se suman al Pagado y reducen el saldo.</p>
+    </div>
+    <ul class="divide-y divide-slate-100">
+      {{range .Claims}}
+      <li class="flex flex-col gap-3 px-6 py-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-sm font-semibold text-slate-900">{{money .Amount $.Project.Currency}}</span>
+            {{if eq .Status "paid"}}<span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">Pagado</span>{{else}}<span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">Pendiente</span>{{end}}
+          </div>
+          {{if .Note}}<p class="mt-1 text-xs text-slate-600">{{.Note}}</p>{{end}}
+          <p class="mt-1 text-xs text-slate-400">{{datetime .CreatedAt}} · {{bytes .ProofSize}}</p>
+          {{if .AdminNote}}<p class="mt-1 rounded-lg bg-slate-50 px-3 py-1.5 text-xs text-slate-600">Admin: {{.AdminNote}}</p>{{end}}
+        </div>
+        <a href="/payment-proofs/{{.ID}}" target="_blank" rel="noopener" class="shrink-0 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">Ver comprobante</a>
+      </li>
+      {{else}}
+      <li class="px-6 py-10 text-center text-sm text-slate-400">Todavía no has reportado pagos.</li>
+      {{end}}
+    </ul>
+  </div>
+
+  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="border-b border-slate-200 px-6 py-4">
+      <h3 class="text-base font-semibold text-slate-900">Movimientos</h3>
+    </div>
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <tr>
+          <th class="px-5 py-3">Concepto</th>
+          <th class="px-5 py-3">Tipo</th>
+          <th class="px-5 py-3">Monto</th>
+          <th class="px-5 py-3">Estado</th>
+          <th class="px-5 py-3">Fecha</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {{range .Billings}}
+        <tr>
+          <td class="px-5 py-3 text-slate-800">{{default "Sin concepto" .Reason}}</td>
+          <td class="px-5 py-3">{{if eq .IsExtra 1}}<span class="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700">Extra</span>{{else}}<span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">Base</span>{{end}}</td>
+          <td class="px-5 py-3 font-medium text-slate-900">{{money .Amount $.Project.Currency}}</td>
+          <td class="px-5 py-3">{{if eq .PaidStatus "paid"}}<span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">Pagado</span>{{else}}<span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">Pendiente</span>{{end}}</td>
+          <td class="px-5 py-3 text-xs text-slate-500">{{datetime .CreatedAt}}</td>
+        </tr>
+        {{else}}
+        <tr><td colspan="5" class="px-5 py-10 text-center text-slate-400">Sin movimientos registrados.</td></tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{end}}

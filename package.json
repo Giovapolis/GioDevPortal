@@ -1,0 +1,12 @@
+{
+  "name": "giodevportal-assets",
+  "private": true,
+  "description": "Tailwind build step for GioDevPortal (not required at runtime)",
+  "scripts": {
+    "tailwind:build": "tailwindcss -i ./web/static/css/input.css -o ./web/static/css/output.css --minify",
+    "tailwind:watch": "tailwindcss -i ./web/static/css/input.css -o ./web/static/css/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

@@ -1,0 +1,27 @@
+{{define "content"}}
+<div class="glass-panel overflow-hidden p-8">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <p class="font-mono text-[10px] uppercase tracking-[0.24em] text-fuchsia-300/70">Acceso seguro</p>
+      <h2 class="mt-1 text-xl font-semibold text-white">Ingresar</h2>
+      <p class="mt-1 text-sm text-slate-400">Accede al panel de administración o al portal de cliente.</p>
+    </div>
+    <span class="mt-1 h-2 w-2 animate-pulse rounded-full bg-fuchsia-400 shadow-[0_0_10px_#e879f9]"></span>
+  </div>
+  <form method="post" action="/login" class="mt-6 space-y-4">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <div>
+      <label class="field-label" for="login-email">Correo</label>
+      <input id="login-email" type="email" name="email" required autocomplete="email" class="field-input" placeholder="tu@correo.com">
+    </div>
+    <div>
+      <label class="field-label" for="login-password">Contraseña</label>
+      <input id="login-password" type="password" name="password" required autocomplete="current-password" class="field-input" placeholder="••••••••">
+    </div>
+    <button class="neon-button w-full py-2.5">Entrar</button>
+  </form>
+  <div class="mt-4 text-center text-sm">
+    <a href="/forgot-password" class="text-fuchsia-300 transition-colors hover:text-fuchsia-200">¿Olvidaste tu contraseña?</a>
+  </div>
+</div>
+{{end}}

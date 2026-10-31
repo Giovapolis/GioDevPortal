@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS project_events;
+DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS password_resets;
+DROP TABLE IF EXISTS billings;
+DROP TABLE IF EXISTS resources;
+DROP TABLE IF EXISTS tickets_notes;
+DROP TABLE IF EXISTS deliverables;
+DROP TABLE IF EXISTS tasks;
+DROP TABLE IF EXISTS proposed_tasks;
+DROP TABLE IF EXISTS srs_versions;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS users;

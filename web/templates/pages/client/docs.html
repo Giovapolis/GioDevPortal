@@ -1,0 +1,82 @@
+{{define "content"}}
+<div class="space-y-6">
+  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h2 class="text-lg font-semibold text-slate-900">Documentación del proyecto</h2>
+    <p class="mt-1 text-sm text-slate-500">Vista ejecutiva del SRS: reglas de negocio y casos de uso. Puedes proponer actualizaciones o autorizar las propuestas del administrador. La versión final se publica cuando ambas partes autorizan.</p>
+  </div>
+
+  {{if .HasSRS}}
+  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex items-center justify-between">
+      <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">Versión {{.Latest.Version}}</span>
+      <span class="text-xs text-slate-400">{{datetime .Latest.CreatedAt}}</span>
+    </div>
+    <pre class="whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-slate-700">{{.Latest.ClientContent}}</pre>
+  </div>
+  {{else}}
+  <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm">
+    <img src="/static/img/empty-docs.svg" alt="" class="mx-auto mb-4 h-28 w-auto">
+    <h3 class="text-base font-semibold text-slate-900">Documentación en preparación</h3>
+    <p class="mt-1 text-sm text-slate-500">El administrador todavía no ha publicado el documento ejecutivo del proyecto.</p>
+  </div>
+  {{end}}
+
+
+  {{if .PendingProposal}}
+  <div class="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-fuchsia-200 px-6 py-4">
+      <div>
+        <h2 class="text-base font-semibold text-fuchsia-900">Actualización de SRS propuesta</h2>
+        <p class="text-xs text-fuchsia-700">Generada el {{datetime .PendingProposal.CreatedAt}}. Se publicará cuando tú y el administrador la autoricen.</p>
+      </div>
+      <div class="flex gap-2 text-[11px]">
+        {{if eq .PendingProposal.ClientApproved 1}}<span class="rounded-full bg-emerald-100 px-2.5 py-1 font-medium text-emerald-700">Tú: autorizada</span>{{else}}<span class="rounded-full bg-amber-100 px-2.5 py-1 font-medium text-amber-700">Tú: pendiente</span>{{end}}
+        {{if eq .PendingProposal.AdminApproved 1}}<span class="rounded-full bg-emerald-100 px-2.5 py-1 font-medium text-emerald-700">Admin: autorizada</span>{{else}}<span class="rounded-full bg-amber-100 px-2.5 py-1 font-medium text-amber-700">Admin: pendiente</span>{{end}}
+      </div>
+    </div>
+    <div class="space-y-4 p-6">
+      <pre class="max-h-80 overflow-auto whitespace-pre-wrap rounded-lg border border-slate-200 bg-white p-4 text-xs leading-relaxed text-slate-700">{{.PendingProposal.ClientContent}}</pre>
+      {{if eq .PendingProposal.ClientApproved 1}}
+      <p class="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-800">Ya autorizaste esta actualización. Esperando la autorización del administrador para publicar la nueva versión.</p>
+      {{else}}
+      <form method="post" action="/client/projects/{{.Project.ID}}/srs/proposals/{{.PendingProposal.ID}}/approve">
+        <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+        <button class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Autorizar actualización</button>
+      </form>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+  <div class="rounded-2xl border border-primary-200 bg-primary-50 p-6 shadow-sm">
+    <h2 class="text-base font-semibold text-primary-900">Solicitar actualización de casos de uso / objetivos</h2>
+    <p class="mt-1 text-xs text-primary-700">Describe el cambio. Se enviará al administrador y quedará pendiente hasta su autorización.</p>
+    <form method="post" action="/client/projects/{{.Project.ID}}/requests" class="mt-4 space-y-3">
+      <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+      <textarea name="content" rows="5" required minlength="10" maxlength="4000" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Ej: Agregar un caso de uso para que el cliente pueda reprogramar una reserva..."></textarea>
+      <div class="flex justify-end">
+        <button class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700">Enviar solicitud</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="border-b border-slate-200 px-6 py-4">
+      <h3 class="text-base font-semibold text-slate-900">Solicitudes enviadas</h3>
+    </div>
+    <ul class="divide-y divide-slate-100">
+      {{range .Requests}}
+      <li class="px-6 py-4">
+        <div class="flex flex-wrap items-center gap-2">
+          {{if eq .Status "approved"}}<span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">Aprobada · aplicada al SRS</span>{{else if eq .Status "rejected"}}<span class="rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700">Rechazada</span>{{else}}<span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">Pendiente de autorización</span>{{end}}
+          <span class="text-xs text-slate-400">{{datetime .CreatedAt}}</span>
+        </div>
+        <p class="mt-2 whitespace-pre-wrap text-sm text-slate-700">{{.Content}}</p>
+        {{if .AdminNote}}<p class="mt-2 rounded-lg bg-slate-50 px-3 py-1.5 text-xs text-slate-600">Admin: {{.AdminNote}}</p>{{end}}
+      </li>
+      {{else}}
+      <li class="px-6 py-10 text-center text-sm text-slate-400">No has enviado solicitudes de actualización.</li>
+      {{end}}
+    </ul>
+  </div>
+</div>
+{{end}}

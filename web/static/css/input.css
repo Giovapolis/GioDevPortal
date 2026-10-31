@@ -1,0 +1,197 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  [x-cloak] {
+    display: none !important;
+  }
+
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: rgba(217, 70, 239, 0.28);
+    color: #fff;
+  }
+
+  * {
+    scrollbar-color: rgba(168, 85, 247, 0.35) transparent;
+  }
+}
+
+@layer components {
+  .circuit-grid {
+    background-image:
+      linear-gradient(to right, rgba(168, 85, 247, 0.09) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(168, 85, 247, 0.09) 1px, transparent 1px),
+      radial-gradient(circle at 1px 1px, rgba(217, 70, 239, 0.22) 1px, transparent 0);
+    background-size: 44px 44px, 44px 44px, 44px 44px;
+    -webkit-mask-image: radial-gradient(ellipse at top, black 18%, transparent 76%);
+    mask-image: radial-gradient(ellipse at top, black 18%, transparent 76%);
+  }
+
+  .circuit-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.78;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 28%, black 24%, transparent 84%);
+    mask-image: radial-gradient(ellipse at 50% 28%, black 24%, transparent 84%);
+  }
+
+  .glass-panel {
+    @apply relative rounded-2xl border border-purple-500/25 bg-black/40 shadow-[0_24px_80px_-40px_rgba(168,85,247,0.55)] backdrop-blur-md;
+  }
+
+  .glass-panel::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(232, 121, 249, 0.65), transparent);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .circuit-card {
+    @apply relative rounded-2xl border border-purple-500/25 bg-black/40 shadow-[0_24px_80px_-40px_rgba(168,85,247,0.55)] backdrop-blur-md transition-all duration-300;
+  }
+
+  .circuit-card:hover {
+    border-color: rgba(192, 132, 252, 0.5);
+    box-shadow:
+      0 24px 80px -40px rgba(168, 85, 247, 0.8),
+      0 0 22px rgba(168, 85, 247, 0.16);
+    transform: translateY(-4px);
+  }
+
+  .nav-link {
+    @apply flex items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-slate-300 transition-all duration-200 hover:border-purple-500/30 hover:bg-purple-500/10 hover:text-white;
+  }
+
+  .nav-link::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    background: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.45);
+    transition: background-color 200ms ease, box-shadow 200ms ease;
+  }
+
+  .nav-link-active {
+    @apply border-fuchsia-400/40 bg-purple-600/20 text-white shadow-[inset_0_0_18px_rgba(168,85,247,0.18)];
+  }
+
+  .nav-link-active::before {
+    background: #e879f9;
+    box-shadow: 0 0 12px rgba(232, 121, 249, 0.95);
+  }
+
+  .neon-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-fuchsia-400/40 bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/60 active:translate-y-0 active:scale-[0.98];
+  }
+
+  .ghost-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-purple-500/25 bg-black/30 px-3 py-2 text-sm font-medium text-slate-300 transition-all duration-300 hover:-translate-y-0.5 hover:border-purple-400/50 hover:bg-purple-500/10 hover:text-white hover:shadow-[0_0_15px_rgba(168,85,247,0.35)] focus:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/50 active:translate-y-0;
+  }
+
+  .field-label {
+    @apply mb-1 block font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-purple-200/70;
+  }
+
+  .field-input {
+    @apply w-full rounded-lg border border-purple-500/20 bg-black/40 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 transition-colors duration-200 focus:border-fuchsia-400/70 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20;
+  }
+
+  .field-input option {
+    background-color: #0b0616;
+    color: #e2e8f0;
+  }
+
+  .system-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-purple-500/25 bg-black/30 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-purple-200/80;
+  }
+}
+
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 22px rgba(217, 70, 239, 0.5);
+  }
+}
+
+@keyframes htmxFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes htmxGlow {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+}
+
+.htmx-request.htmx-indicator,
+.htmx-request .htmx-indicator {
+  opacity: 1;
+}
+
+.htmx-added {
+  animation: htmxFadeIn 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.htmx-swapping {
+  opacity: 0;
+  transform: scale(0.99);
+  transition: opacity 180ms ease-out, transform 180ms ease-out;
+}
+
+.htmx-indicator .loader-bar {
+  animation: htmxGlow 900ms ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .circuit-canvas {
+    opacity: 0.55;
+  }
+
+  .htmx-added {
+    animation: none;
+  }
+
+  .htmx-swapping {
+    transition: none;
+  }
+
+  .htmx-indicator .loader-bar {
+    animation: none;
+  }
+}

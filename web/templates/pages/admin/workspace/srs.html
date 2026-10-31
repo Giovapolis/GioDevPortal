@@ -1,0 +1,201 @@
+{{define "content"}}
+<div x-data="{ tab: 'client' }" class="space-y-6">
+
+  <div class="rounded-2xl border border-primary-200 bg-primary-50 shadow-sm">
+    <div class="border-b border-primary-200 px-6 py-4">
+      <h2 class="text-base font-semibold text-primary-900">Solicitudes de actualización del cliente</h2>
+      <p class="text-xs text-primary-700">El cliente ya autorizó al solicitarla. Al aprobarla se crea una nueva versión del SRS con la actualización.</p>
+    </div>
+    <ul class="divide-y divide-primary-100">
+      {{range .PendingRequests}}
+      <li class="px-6 py-5">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">Pendiente</span>
+          <span class="text-xs text-slate-500">{{.ClientName}} · {{datetime .CreatedAt}}</span>
+        </div>
+        <p class="mt-2 whitespace-pre-wrap text-sm text-slate-700">{{.Content}}</p>
+        <form method="post" action="/admin/projects/{{$.Project.ID}}/srs/requests/{{.ID}}/approve" class="mt-3 flex flex-col gap-3 md:flex-row md:items-end">
+          <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+          <div class="flex-1">
+            <label class="mb-1 block text-xs font-medium text-slate-500">Nota de revisión (opcional)</label>
+            <input name="admin_note" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Ajustado al alcance actual...">
+          </div>
+          <div class="flex gap-2">
+            <button type="submit" formaction="/admin/projects/{{$.Project.ID}}/srs/requests/{{.ID}}/approve" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Autorizar y actualizar SRS</button>
+            <button type="submit" formaction="/admin/projects/{{$.Project.ID}}/srs/requests/{{.ID}}/reject" class="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50">Rechazar</button>
+          </div>
+        </form>
+      </li>
+      {{else}}
+      <li class="px-6 py-8 text-center text-sm text-primary-700">No hay solicitudes pendientes.</li>
+      {{end}}
+    </ul>
+  </div>
+
+
+  {{if .PendingProposal}}
+  <div class="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-fuchsia-200 px-6 py-4">
+      <div>
+        <h2 class="text-base font-semibold text-fuchsia-900">Propuesta de SRS pendiente de autorización</h2>
+        <p class="text-xs text-fuchsia-700">Generada el {{datetime .PendingProposal.CreatedAt}}. Se publicará como nueva versión cuando el administrador y el cliente la autoricen.</p>
+      </div>
+      <div class="flex gap-2 text-[11px]">
+        {{if eq .PendingProposal.AdminApproved 1}}<span class="rounded-full bg-emerald-100 px-2.5 py-1 font-medium text-emerald-700">Admin: autorizada</span>{{else}}<span class="rounded-full bg-amber-100 px-2.5 py-1 font-medium text-amber-700">Admin: pendiente</span>{{end}}
+        {{if eq .PendingProposal.ClientApproved 1}}<span class="rounded-full bg-emerald-100 px-2.5 py-1 font-medium text-emerald-700">Cliente: autorizada</span>{{else}}<span class="rounded-full bg-amber-100 px-2.5 py-1 font-medium text-amber-700">Cliente: pendiente</span>{{end}}
+      </div>
+    </div>
+    <div class="space-y-4 p-6">
+      <div>
+        <h3 class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Vista ejecutiva propuesta</h3>
+        <pre class="max-h-64 overflow-auto whitespace-pre-wrap rounded-lg border border-slate-200 bg-white p-4 text-xs text-slate-700">{{.PendingProposal.ClientContent}}</pre>
+      </div>
+      <div>
+        <h3 class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Vista técnica propuesta</h3>
+        <pre class="max-h-64 overflow-auto whitespace-pre-wrap rounded-lg border border-slate-200 bg-white p-4 text-xs text-slate-700">{{.PendingProposal.DevContent}}</pre>
+      </div>
+      {{if eq .PendingProposal.AdminApproved 1}}
+      <p class="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-800">Ya autorizaste esta propuesta. Esperando la autorización del cliente desde su portal de Documentación.</p>
+      {{else}}
+      <form method="post" action="/admin/projects/{{.Project.ID}}/srs/proposals/{{.PendingProposal.ID}}/approve">
+        <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+        <button class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Autorizar como administrador</button>
+      </form>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+  <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    <div class="xl:col-span-1 space-y-6">
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold text-slate-900">Generar SRS con IA</h2>
+          {{if .GeminiEnabled}}<span class="rounded-full bg-fuchsia-100 px-2.5 py-1 text-xs font-medium text-fuchsia-700">Gemini</span>{{else}}<span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">Mock</span>{{end}}
+        </div>
+        <p class="mt-1 text-xs text-slate-500">Actualiza el SRS actual incorporando las nuevas notas. La versión final se publicará cuando el administrador y el cliente la autoricen.</p>
+        <form method="post" action="/admin/projects/{{.Project.ID}}/srs/generate" class="mt-4 space-y-3">
+          <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+          <textarea name="notes" rows="7" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Nuevas notas o cambios propuestos. Ej: agrega reportes por sucursal y reprogramación de reservas..."></textarea>
+          <button class="w-full rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700">Generar SRS dual</button>
+        </form>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-base font-semibold text-slate-900">Historial de versiones</h2>
+        <ul class="mt-3 space-y-2 text-sm">
+          {{range .Versions}}
+          <li class="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2">
+            <div>
+              <span class="font-medium text-slate-800">v{{.Version}}</span>
+              <span class="ml-2 text-xs text-slate-500">{{datetime .CreatedAt}}</span>
+            </div>
+            {{if and $.Latest (eq .ID $.Latest.ID)}}<span class="rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-medium text-primary-700">Actual</span>{{end}}
+          </li>
+          {{else}}
+          <li class="text-xs text-slate-400">Sin versiones todavía.</li>
+          {{end}}
+        </ul>
+      </div>
+    </div>
+
+    <div class="xl:col-span-2 space-y-6">
+      {{if .HasSRS}}
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900">SRS v{{.Latest.Version}}</h2>
+            <p class="text-xs text-slate-500">Edita ambas vistas y guarda los cambios.</p>
+          </div>
+          <form method="post" action="/admin/projects/{{.Project.ID}}/srs/tasks/generate">
+            <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+            <button class="rounded-lg border border-fuchsia-300 bg-fuchsia-50 px-3 py-2 text-xs font-semibold text-fuchsia-700 hover:bg-fuchsia-100">Proponer tareas con IA</button>
+          </form>
+        </div>
+
+        <div class="px-6 pt-4">
+          <div class="inline-flex rounded-lg bg-slate-100 p-1 text-sm">
+            <button @click="tab='client'" :class="tab==='client' ? 'bg-white shadow text-slate-900' : 'text-slate-500'" class="rounded-md px-3 py-1.5 font-medium">Vista ejecutiva</button>
+            <button @click="tab='dev'" :class="tab==='dev' ? 'bg-white shadow text-slate-900' : 'text-slate-500'" class="rounded-md px-3 py-1.5 font-medium">Vista técnica</button>
+          </div>
+        </div>
+
+        <form method="post" action="/admin/projects/{{.Project.ID}}/srs/save" class="p-6">
+          <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+          <input type="hidden" name="version_id" value="{{.Latest.ID}}">
+          <div x-show="tab==='client'">
+            <label class="mb-1 block text-xs font-medium text-slate-500">Visible para el cliente</label>
+            <textarea name="client_content" rows="18" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-xs leading-relaxed">{{.Latest.ClientContent}}</textarea>
+          </div>
+          <div x-show="tab==='dev'" x-cloak>
+            <label class="mb-1 block text-xs font-medium text-slate-500">Interno · arquitectura y endpoints</label>
+            <textarea name="dev_content" rows="18" class="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-xs leading-relaxed">{{.Latest.DevContent}}</textarea>
+          </div>
+          <div class="mt-3 flex justify-end">
+            <button class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700">Guardar SRS</button>
+          </div>
+        </form>
+      </div>
+      {{else}}
+      <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
+        <h2 class="text-base font-semibold text-slate-900">Todavía no hay SRS</h2>
+        <p class="mt-1 text-sm text-slate-500">Usa el panel de la izquierda para generar la primera versión a partir de tus notas.</p>
+      </div>
+      {{end}}
+
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-6 py-4">
+          <h2 class="text-base font-semibold text-slate-900">Revisión IA → Kanban</h2>
+          <p class="text-xs text-slate-500">Aprueba, descarta o deja las propuestas para más tarde. Al aprobar pasan al backlog.</p>
+        </div>
+        <ul class="divide-y divide-slate-100">
+          {{range .PendingTasks}}
+          <li class="flex flex-col gap-3 px-6 py-4 md:flex-row md:items-start md:justify-between">
+            <div class="md:pr-6">
+              <p class="text-sm font-medium text-slate-900">{{.AiTitle}}</p>
+              <p class="mt-0.5 text-xs text-slate-500">{{.AiDescription}}</p>
+            </div>
+            <div class="flex shrink-0 gap-2">
+              <form method="post" action="/admin/projects/{{$.Project.ID}}/proposed/{{.ID}}/approve">
+                <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+                <button class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">Aprobar</button>
+              </form>
+              <form method="post" action="/admin/projects/{{$.Project.ID}}/proposed/{{.ID}}/reject">
+                <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+                <button class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">Descartar</button>
+              </form>
+            </div>
+          </li>
+          {{else}}
+          <li class="px-6 py-8 text-center text-sm text-slate-400">No hay propuestas pendientes.</li>
+          {{end}}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="border-b border-slate-200 px-6 py-4">
+      <h2 class="text-base font-semibold text-slate-900">Historial de propuestas SRS</h2>
+      <p class="text-xs text-slate-500">Trazabilidad de las propuestas generadas con IA y su estado de autorización.</p>
+    </div>
+    <ul class="divide-y divide-slate-100">
+      {{range .Proposals}}
+      <li class="flex flex-wrap items-center justify-between gap-2 px-6 py-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-sm font-medium text-slate-800">Propuesta #{{.ID}}</span>
+          <span class="text-xs text-slate-400">{{datetime .CreatedAt}}</span>
+          {{if eq .Status "applied"}}<span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">Publicada</span>{{else if eq .Status "superseded"}}<span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">Reemplazada</span>{{else}}<span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">Pendiente</span>{{end}}
+        </div>
+        <div class="flex items-center gap-2 text-[11px]">
+          <span class="{{if eq .AdminApproved 1}}rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700{{else}}rounded-full bg-slate-50 px-2 py-0.5 text-slate-400{{end}}">Admin {{if eq .AdminApproved 1}}✓{{else}}—{{end}}</span>
+          <span class="{{if eq .ClientApproved 1}}rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700{{else}}rounded-full bg-slate-50 px-2 py-0.5 text-slate-400{{end}}">Cliente {{if eq .ClientApproved 1}}✓{{else}}—{{end}}</span>
+        </div>
+      </li>
+      {{else}}
+      <li class="px-6 py-8 text-center text-sm text-slate-400">Todavía no se han generado propuestas.</li>
+      {{end}}
+    </ul>
+  </div>
+</div>
+{{end}}

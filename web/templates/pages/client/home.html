@@ -1,0 +1,27 @@
+{{define "content"}}
+<div class="space-y-6">
+  <div>
+    <h2 class="text-lg font-semibold text-slate-900">Mis proyectos</h2>
+    <p class="text-sm text-slate-500">Selecciona un proyecto para ver su avance.</p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+    {{range .Projects}}
+    <a href="/client/projects/{{.ID}}" class="block rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary-300 hover:shadow-md">
+      <div class="flex items-center justify-between">
+        <span class="rounded-full px-2.5 py-1 text-xs font-medium {{statusClass .Status}}">{{projectStatus .Status}}</span>
+        <span class="text-xs text-slate-400">{{if .StartDate.Valid}}Inicio {{date .StartDate.String}}{{end}}</span>
+      </div>
+      <h3 class="mt-3 text-base font-semibold text-slate-900">{{.Name}}</h3>
+      <p class="mt-1 text-sm text-slate-500">{{truncate .Description 120}}</p>
+      <span class="mt-4 inline-block text-sm font-medium text-primary-600">Ver avance &rarr;</span>
+    </a>
+    {{else}}
+    <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center md:col-span-2">
+      <img src="/static/img/empty-projects.svg" alt="" class="mx-auto mb-4 h-32 w-auto">
+      <p class="text-sm text-slate-400">Aún no tienes proyectos asignados. Contacta a tu administrador.</p>
+    </div>
+    {{end}}
+  </div>
+</div>
+{{end}}

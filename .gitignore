@@ -1,0 +1,23 @@
+# binaries
+/bin/
+/server
+giodevportal
+
+# data & uploads
+/data/
+*.db
+*.db-shm
+*.db-wal
+
+# env & secrets
+.env
+!.env.example
+
+# node (tailwind build only)
+node_modules/
+
+# editor
+.idea/
+.vscode/
+.DS_Store
+*.log

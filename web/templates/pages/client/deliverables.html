@@ -1,0 +1,82 @@
+{{define "content"}}
+<div class="space-y-6">
+
+  <div class="rounded-2xl border border-primary-200 bg-primary-50 p-6 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <span class="rounded-full bg-primary-600 px-2.5 py-1 text-xs font-semibold text-white">Entregable actual</span>
+        {{if .Current}}
+        <h2 class="mt-2 text-lg font-semibold text-primary-900">Sprint {{.Current.SprintNum}}{{if .Current.Title}} · {{.Current.Title}}{{end}}</h2>
+        {{if .Current.Notes}}<p class="mt-1 text-sm text-primary-800">{{.Current.Notes}}</p>{{end}}
+        {{else}}
+        <h2 class="mt-2 text-lg font-semibold text-primary-900">Sin entregable en revisión</h2>
+        <p class="mt-1 text-sm text-primary-800">Cuando el administrador publique un nuevo entregable aparecerá aquí.</p>
+        {{end}}
+      </div>
+      {{if .Current}}<a href="{{.Current.UrlDemo}}" target="_blank" rel="noopener" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700">Abrir entorno de pruebas</a>{{end}}
+    </div>
+  </div>
+
+  {{if .Current}}
+  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h2 class="text-base font-semibold text-slate-900">Dejar una nota o reportar un bug</h2>
+    <p class="mt-1 text-xs text-slate-500">Tu mensaje se envía al administrador y dispara una notificación por WhatsApp.</p>
+    <form hx-post="/client/projects/{{.Project.ID}}/deliverables/{{.Current.ID}}/tickets"
+          hx-target="#ticket-feedback" hx-swap="innerHTML"
+          hx-on::after-request="if(event.detail.successful) this.reset()"
+          class="mt-4 space-y-3">
+      <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+      <input type="hidden" name="deliverable_id" value="{{.Current.ID}}">
+      <textarea name="message" rows="3" required maxlength="2000" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Describe el feedback, el bug o la observación..."></textarea>
+      <div class="flex items-center justify-between gap-3">
+        <div id="ticket-feedback" class="text-sm"></div>
+        <button type="submit" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700">Enviar nota</button>
+      </div>
+    </form>
+  </div>
+  {{end}}
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div class="border-b border-slate-200 px-6 py-4">
+        <h3 class="text-base font-semibold text-slate-900">Entregables aceptados</h3>
+      </div>
+      <ul class="divide-y divide-slate-100">
+        {{range .Accepted}}
+        <li class="flex items-center justify-between px-6 py-3">
+          <div>
+            <p class="text-sm font-medium text-slate-800">Sprint {{.SprintNum}}{{if .Title}} · {{.Title}}{{end}}</p>
+            <p class="text-xs text-slate-400">{{if .AcceptedAt.Valid}}Aceptado {{date .AcceptedAt.String}}{{end}}</p>
+          </div>
+          <a href="{{.UrlDemo}}" target="_blank" rel="noopener" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">Ver demo</a>
+        </li>
+        {{else}}
+        <li class="px-6 py-8 text-center text-sm text-slate-400">Aún no hay entregables aceptados.</li>
+        {{end}}
+      </ul>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div class="border-b border-slate-200 px-6 py-4">
+        <h3 class="text-base font-semibold text-slate-900">Mis notas enviadas</h3>
+      </div>
+      <ul class="divide-y divide-slate-100">
+        {{range .Tickets}}
+        <li class="px-6 py-3">
+          <div class="flex items-center justify-between">
+            <p class="text-sm text-slate-800">{{.ClientMessage}}</p>
+            <span class="ml-3 shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium {{if eq .Status "closed"}}bg-slate-100 text-slate-600{{else if eq .Status "in_progress"}}bg-amber-100 text-amber-700{{else}}bg-primary-100 text-primary-700{{end}}">
+              {{if eq .Status "closed"}}Cerrado{{else if eq .Status "in_progress"}}En progreso{{else}}Abierto{{end}}
+            </span>
+          </div>
+          <p class="mt-1 text-xs text-slate-400">{{datetime .CreatedAt}}</p>
+          {{if .AdminReply}}<p class="mt-1 rounded-lg bg-slate-50 px-3 py-1.5 text-xs text-slate-600">Admin: {{.AdminReply}}</p>{{end}}
+        </li>
+        {{else}}
+        <li class="px-6 py-8 text-center text-sm text-slate-400">No has enviado notas todavía.</li>
+        {{end}}
+      </ul>
+    </div>
+  </div>
+</div>
+{{end}}
